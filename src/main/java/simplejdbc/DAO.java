@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,9 +81,30 @@ public class DAO {
 	 * @throws DAOException
 	 */
 	public int numberOfOrdersForCustomer(int customerId) throws DAOException {
-		throw new UnsupportedOperationException("Pas encore implémenté");
-	}
+        int result = 0;
 
+        String sql = "SELECT COUNT(QUANTITY) AS NUMBER FROM PURCHASE_ORDER WHERE CUSTOMER_ID = ?";
+        try (Connection connection = myDataSource.getConnection(); // Ouvrir une connexion
+                PreparedStatement stmt = connection.prepareStatement(sql); // On crée un statement pour exécuter une requête
+                ) {
+            stmt.setInt(1, customerId);
+            try {
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    result = rs.getInt("NUMBER");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+                throw new DAOException(ex.getMessage());
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+            throw new DAOException(ex.getMessage());
+        }
+        return result;
+    }
+        
 	/**
 	 * Trouver un Customer à partir de sa clé
 	 *
@@ -91,8 +113,36 @@ public class DAO {
 	 * @throws DAOException
 	 */
 	CustomerEntity findCustomer(int customerID) throws DAOException {
-		throw new UnsupportedOperationException("Pas encore implémenté");
-	}
+	String ADRESSE = "";
+        String ADRESSELINE = "";
+        int id =0;
+
+        String sql = "SELECT CUSTOMEr_ID,NAME,ADRESSLINE1 FROM CUSTOMER WHERE CUSTOMER_ID = ?";
+        try (Connection connection = myDataSource.getConnection(); // Ouvrir une connexion
+                PreparedStatement stmt = connection.prepareStatement(sql); // On crée un statement pour exécuter une requête
+                ) {
+           
+            try {
+                stmt.setInt(1,customerID);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    id = rs.getInt("CUSTOMER_ID");
+                    ADRESSE=rs.getString("NAME");
+                    ADRESSELINE = rs.getString("ADRESSELINE1");
+                }
+                CustomerEntity result = new CustomerEntity(id,ADRESSE,ADRESSELINE);
+                return result;
+            } catch (SQLException ex) {
+                Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+                throw new DAOException(ex.getMessage());
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+            throw new DAOException(ex.getMessage());
+        }
+        
+    }
 
 	/**
 	 * Liste des clients localisés dans un état des USA
@@ -102,7 +152,31 @@ public class DAO {
 	 * @throws DAOException
 	 */
 	List<CustomerEntity> customersInState(String state) throws DAOException {
-		throw new UnsupportedOperationException("Pas encore implémenté");
-	}
+	List<CustomerEntity> l = new ArrayList<CustomerEntity>();
+        String sql = "SELECT CUSTOMER_ID,NAME,ADRESSLINE1 FROM CUSTOMER WHERE STATE = ?";
+        try (Connection connection = myDataSource.getConnection(); // Ouvrir une connexion
+                PreparedStatement stmt = connection.prepareStatement(sql); // On crée un statement pour exécuter une requête
+                ) {
+            
+            try {
+                
+                stmt.setString(1, state);
+                ResultSet rs = stmt.executeQuery();
+                
+                while (rs.next()) {
+                l.add(new CustomerEntity(rs.getInt("CUSTOMER_ID"),rs.getString("NAME"),rs.getString("ADRESSELINE1")));
+                }
 
+                return l;
+            } catch (SQLException ex) {
+                Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+                throw new DAOException(ex.getMessage());
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger("DAO").log(Level.SEVERE, null, ex);
+            throw new DAOException(ex.getMessage());
+        }
+
+}
 }
